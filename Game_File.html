@@ -1,0 +1,885 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title></title>
+	<style>
+		canvas {
+			background-image: url("wallpaper8.jpg");
+		}
+		body {
+			background-color: black;
+		}
+	</style>
+	<script>
+		var Counter = 0;
+		var Hero1;
+		var HeroHealth = 100;
+		var Platform = [];
+		var PlatformHealth = [];
+		var Enemy = []
+		var EnemyList = []
+		var Jump = 2;
+		var JumpMovement = 2.5;
+		var H1Distance = 0;
+		var Speed = 16000;
+		var list1 = [500, 1000, 1500, 2000]
+		var H1Obstacles = [];
+		var H2Obstacles = [];
+		var EnemiesDefeated = 0;
+		var BulletsFired = 1000;
+		var SuperPowerList = []
+		var SuperPowerType = []
+		var SuperPowerPicture = []
+		var x9;
+		var SuperPower = [false, false, false, false, false, false, false, false];
+		var SuperType = ['S', 'M', 'F', 'D', 'H', 'I', 'R', 'Z']
+		var PlatColorArray = ["crimson", "light coral", "aquamarine", "forestgreen", "mediumslateblue", "green", "lime", "lawngreen", "lightseagreen"];
+		function randomInt(min, max) {	 	
+			
+			var RandInt = Math.floor(Math.random() * (max - min)) + (min);
+			
+			return RandInt;
+		}
+		
+		function SetUp() {
+			
+			Run.StartGame();
+			
+			x9 = new Piece(0, 700, 25, 1520, "brown", "wall")
+			
+			Hero1 = new Piece(100, 100, 20, 20, "purple", 'character');
+			for(var z = 0; z < 75; z ++){
+				Platform.push(new Piece(randomInt(1000,3000), randomInt(0,900), 25, randomInt(100, 200), 'brown', 'wall'));
+				PlatformHealth.push(14);
+			}
+		}
+		
+
+		
+		
+		
+		var Run = {	
+		
+			canvas : document.createElement("canvas"),
+			
+			ClearTrail : function(){
+				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			},
+			
+			
+			StartGame : function() {
+				this.canvas.width = 1520;
+				this.canvas.height = 700;
+				
+				this.context = this.canvas.getContext('2d');
+				
+				document.body.insertBefore(this.canvas, document.body.childNodes[0]);	
+				this.Interval = setInterval(UpdateGame, 1);
+				
+				window.addEventListener('keydown', function (e) {
+					Run.key = (Run.key || []); 										
+					Run.key[e.keyCode] = (e.type == "keydown");
+				})
+				window.addEventListener('keyup', function (e) {
+					Run.key[e.keyCode] = (e.type == "keydown");            
+				})
+				
+			},
+			
+			StopGame : function(){
+				clearInterval(this.Interval);
+				ctx = Run.context;
+				ctx.fillStyle = 'black';
+				ctx.fillRect(0, 0, 1520, 700);
+				
+				ctx.fillStyle = 'white';
+				ctx.font="100px Georgia";
+				ctx.fillText("GAME OVER",500, 250);
+				
+				ctx.fillStyle = 'white';
+				ctx.font="50px Georgia";
+				ctx.fillText("Score: " + Math.floor(H1Distance / 50),650, 350);
+				
+				
+				
+				setTimeout(alertFunc, 3000);
+				
+				
+			}
+			
+			
+		}
+		function alertFunc() {
+			window.open("Start_File.html","_self");
+		}
+		
+		
+		
+		function Piece(x, y, height, width, color){
+			this.CharWidth = width;
+			this.CharHeight = height;
+			this.XMovement = 0;		
+			this.YMovement = 0;
+			this.XCoord = x;
+			this.YCoord = y;
+			this.YGravity = 0.01;
+			this.YGravitySpeed = 0;
+			this.XGravity = 0.03;
+			this.XGravitySpeed = 0;
+			this.ShootSpeed = 0.4;
+			
+			
+			
+			this.PlatformRefresh = function(){
+			
+				ctx = Run.context;
+				/*
+				ctx.fillStyle = 'white';
+				ctx.fillRect(this.XCoord-3.5, this.YCoord-3.5, this.CharWidth+7, this.CharHeight+7);
+				*/
+				ctx.fillStyle = '#025e83';
+				ctx.fillRect(this.XCoord, this.YCoord, this.CharWidth, this.CharHeight);
+				ctx.fillStyle = 'green';
+				ctx.fillRect(this.XCoord, this.YCoord, this.CharWidth, this.CharHeight/4)
+				ctx.fillRect(this.XCoord, this.YCoord + this.CharHeight/4-1, this.CharWidth/10, this.CharHeight/4)
+				ctx.fillRect(this.XCoord + this.CharWidth * (1/5), this.YCoord + this.CharHeight/4-1, this.CharWidth/10, this.CharHeight/4)
+				ctx.fillRect(this.XCoord + this.CharWidth * (2/5), this.YCoord + this.CharHeight/4-1, this.CharWidth/10, this.CharHeight/4)
+				ctx.fillRect(this.XCoord + this.CharWidth * (3/5), this.YCoord + this.CharHeight/4-1, this.CharWidth/10, this.CharHeight/4)
+				ctx.fillRect(this.XCoord + this.CharWidth * (4/5), this.YCoord + this.CharHeight/4-1, this.CharWidth/10, this.CharHeight/4)
+				ctx.font="20px Georgia";
+				ctx.fillStyle = 'black';
+				ctx.fillText("Score: " + Math.floor(H1Distance / 50) + "     Jumps Left: " + Jump + "      Enemies Defeated: " + EnemiesDefeated
+				 + "      Ammo Left: " + BulletsFired, 400, 40);
+				
+				
+			}
+			
+			this.SuperPowerRefresh = function(num){
+			
+				ctx = Run.context;
+				var img = new Image;
+				ctx.fillStyle = 'black';
+				ctx.fillRect(this.XCoord-3.5, this.YCoord-3.5, this.CharWidth+7, this.CharHeight+7);
+				ctx.fillStyle = color;
+				ctx.fillRect(this.XCoord, this.YCoord, this.CharWidth, this.CharHeight);
+				if (num == "Z"){
+					img.src = SuperPowerPicture[num] + ".jpg";
+					
+				}
+				else{
+					img.src = SuperPowerPicture[num] + ".png";
+				}
+				ctx.drawImage(img, this.XCoord, this.YCoord, this.CharWidth, this.CharHeight);
+				
+				
+				
+			}
+			
+			
+			this.ProjectileRefresh1 = function(){
+			
+				ctx = Run.context;
+				
+				//ctx.fillStyle = 'skyblue';
+				//ctx.fillRect(this.XCoord-3.5, this.YCoord-3.5, this.CharWidth+7, this.CharHeight+7);
+				ctx.fillStyle = 'black';
+				ctx.fillRect(this.XCoord, this.YCoord, this.CharWidth, this.CharHeight);
+				ctx.font="20px Georgia";
+				//ctx.fillText("Hero1 Score: " + Math.floor(H1Distance / 50),Hero1.XCoord - 60,Hero1.YCoord - 40);
+				
+				
+			}
+			
+			this.ProjectileRefresh = function(){
+			
+				ctx = Run.context;
+				
+				//ctx.fillStyle = 'black';
+				//ctx.fillRect(this.XCoord-3.5, this.YCoord-3.5, this.CharWidth+7, this.CharHeight+7);
+				ctx.fillStyle = 'yellow';
+				ctx.fillRect(this.XCoord, this.YCoord, this.CharWidth, this.CharHeight);
+				ctx.font="20px Georgia";
+				//ctx.fillText("Hero1 Score: " + Math.floor(H1Distance / 50),Hero1.XCoord - 60,Hero1.YCoord - 40);
+				
+				
+			}
+			
+			this.CharacterRefresh = function(){
+				
+				ctx.fillStyle = color;
+				var img1 = new Image;
+				img1.src = HeroHealth + ".png"
+				ctx.drawImage(img1, this.XCoord-20, this.YCoord-30, this.CharWidth + 40, this.CharHeight - 25);
+				ctx.fillStyle = 'white';				
+				ctx.fillRect(this.XCoord, this.YCoord, this.CharWidth, this.CharHeight);
+				ctx.font="20px Georgia";
+				//ctx.fillText("Hero1 Score: " + Math.floor(H1Distance / 50),Hero1.XCoord - 60,Hero1.YCoord - 40);
+				
+				for (var v = 0; v < SuperPower.length; v++){
+					if (SuperPower[v] == true){
+						ctx.fillStyle = 'black';
+						ctx.fillRect(46.5 + v * 50, 36.5, 47, 47);
+						ctx.fillStyle = 'lime';
+						ctx.fillRect(50 + v*50, 40, 40, 40);
+						var img2 = new Image;
+						img2.src = SuperType[v] + ".png"
+						ctx.drawImage(img2, 50 + v * 50, 40, 40, 40);
+						
+					}
+				}
+				
+			}
+			
+			this.EnemyRefresh = function(num){
+			
+				ctx = Run.context;
+				
+				ctx.fillStyle = color;
+				var img1 = new Image;
+				img1.src = EnemyList[num] + ".png"
+				ctx.drawImage(img1, this.XCoord-20, this.YCoord-30, this.CharWidth + 40, this.CharHeight - 15);
+				ctx.fillStyle = 'red';	
+				ctx.fillRect(this.XCoord, this.YCoord, this.CharWidth, this.CharHeight);
+				//ctx.drawImage(img1, this.XCoord-20, this.YCoord-30, this.CharWidth + 40, this.CharHeight - 10);
+			}
+			
+			
+			
+			
+			
+			this.UpdatePos = function(){
+				this.XCoord += this.XMovement;
+				this.YCoord += this.YMovement;
+			}
+			
+			
+			this.UpdateH1Obstacle = function(num){ 
+				ctx = Run.context;
+				ctx.fillStyle = "red";
+				if (SuperPower[1] == true){
+					if (num % 3 == 0){
+						this.XCoord += 2.75;
+						this.YCoord += 0.5;
+					}
+					else if (num % 1 == 0){
+						this.XCoord += 2.75;
+						this.YCoord -= 0.5;
+					}
+					else if (num % 2 == 0){
+						this.XCoord += 2.75;
+					}
+				}
+				
+				else {
+					
+					this.XCoord += 2.75;
+				}
+				if (SuperPower[2] == true){
+					this.XCoord += 2.5;
+				}
+				
+			}
+			
+			
+			this.UpdateH2Obstacle = function(){
+				ctx = Run.context;
+				ctx.fillStyle = "red";
+				this.XCoord -= 5
+				
+			}
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			this.H2Bound = function(){
+				if(this.YCoord >= 660){
+					this.YCoord = 660;
+					this.Jump = 2;
+					JumpMovement = 0;
+					this.YGravitySpeed = 0;
+				}
+				
+				
+				if(this.YCoord <= 0){
+					this.YCoord = 0;
+					this.YGravitySpeed = 0;
+					JumpMovement = 0;
+				}
+				
+				if(this.XCoord <= 0){
+					this.XCoord = 0;
+					this.XGravitySpeed = 0;
+				}
+				
+				if(this.XCoord >= 1500){
+					this.XCoord = 1500;
+					this.XGravitySpeed = 0;
+				}
+			}
+			
+			this.Jump2 = function(){
+			
+				JumpMovement -= 0.015;
+				this.YCoord -= JumpMovement;
+			
+			}
+			
+			this.PlatformBound = function(n){
+				var PlatColor = randomInt(0, 9);
+				/*
+				if(this.YCoord >= 950){
+					Platform.splice(n, 1);
+					Platform.push(new Piece(randomInt(1600,3000), randomInt(0,900), randomInt(20, 100), 20, PlatColorArray[PlatColor]));
+				}
+				
+				if(this.YCoord <= -10){
+					Platform.splice(n, 1);
+					Platform.push(new Piece(randomInt(1600,3000), randomInt(0,900), randomInt(20, 100), 20, PlatColorArray[PlatColor]));
+				}
+				*/
+				if(this.XCoord <= -200){
+					Platform.splice(n, 1);
+					Platform.push(new Piece(randomInt(1600,2500), randomInt(0,900), 20, randomInt(100, 200),  'brown'));
+					PlatformHealth.push(14);
+					PlatformHealth.splice(n, 1);
+				}
+				
+			}
+			
+			
+			
+			
+			
+			this.ObjBound = function(Obj, n){
+				if(Obj.YCoord >= 800){
+					Obj.splice(n, 1);
+				}
+				
+				if(this.YCoord <= -50){
+					Obj.splice(n, 1)
+				}
+				
+				if(this.XCoord <= -50){
+					Obj.splice(n, 1);
+				}
+				
+				if(this.XCoord >= 1900){
+					Obj.splice(n, 1);
+				}
+			}
+			
+			this.AIPos = function(Bot, Hero){ 
+				if (Bot.YCoord < Hero.YCoord - 10) {
+					Bot.YCoord += 0.6;
+					for (var a = 0; a < Platform.length; a++){
+						if (Bot.Crash(Platform[a]) == true){
+							Bot.YCoord -= 0.6;
+						}
+					}
+					for (var a = 0; a < H1Obstacles.length; a++){
+						if (Bot.Crash(H1Obstacles[a]) == true){
+							Bot.YCoord -= 0.6;
+						}
+					}
+				}
+				else if (Bot.YCoord > Hero.YCoord + 10) {
+					Bot.YCoord -= 0.6;
+					for (var a = 0; a < Platform.length; a++){
+						if (Bot.Crash(Platform[a]) == true){
+							Bot.YCoord += 0.6;
+						}
+					}
+					for (var a = 0; a < H1Obstacles.length; a++){
+						if (Bot.Crash(H1Obstacles[a]) == true){
+							Bot.YCoord += 0.6;
+						}
+					}
+				}
+				else {
+					if (counter1 % 25 == 0){
+						H2Obstacles.push(new Piece(Bot.XCoord, Bot.YCoord + 5, 5, 10, 'red'))
+					}
+				}
+				
+				Bot.XCoord -= 0.25;
+			}
+			
+			
+			this.Crash = function(Hero2){
+				this.Char1Top = this.YCoord;
+				this.Char1Left = this.XCoord;
+				this.Char1Right = this.XCoord + this.CharWidth;
+				this.Char1Bottom = this.YCoord + (this.CharHeight);
+				this.Hero2Top = Hero2.YCoord;
+				this.Hero2Left = Hero2.XCoord;
+				this.Hero2Bottom = Hero2.YCoord + Hero2.CharHeight;
+				this.Hero2Right = Hero2.XCoord + Hero2.CharWidth;
+				var crash = true;
+				if ((this.Char1Bottom < this.Hero2Top) || (this.Char1Top > this.Hero2Bottom) || (this.Char1Right < this.Hero2Left) || (this.Char1Left > this.Hero2Right)) {
+					crash = false;
+				}
+				return crash;
+				
+			}
+			
+			this.CrashLeft = function(Hero2){
+				this.Char1Top = this.YCoord;
+				this.Char1Left = this.XCoord;
+				this.Char1Right = this.XCoord + this.CharWidth;
+				this.Char1Bottom = this.YCoord + (this.CharHeight);
+				this.Hero2Top = Hero2.YCoord;
+				this.Hero2Left = Hero2.XCoord;
+				this.Hero2Bottom = Hero2.YCoord + Hero2.CharHeight;
+				this.Hero2Right = Hero2.XCoord + Hero2.CharWidth;
+				var crash = 5;
+				if ((this.Char1Bottom < this.Hero2Top) || (this.Char1Top > this.Hero2Bottom) || (this.Char1Right < this.Hero2Left) || (this.Char1Left > this.Hero2Right)) {
+					crash = 0;
+				}
+				else{
+					var top1 = this.Char1Bottom - this.Hero2Top;
+					var left1 = this.Char1Right - this.Hero2Left;
+					var right1 = this.Hero2Right - this.Char1Left;
+					var bottom1 = this.Hero2Bottom - this.Char1Top;
+					if(Math.min(top1, left1, right1, bottom1) == top1){
+						crash = 1
+					}
+					if(Math.min(top1, left1, right1, bottom1) == left1){
+						crash = 2
+					}
+					if(Math.min(top1, left1, right1, bottom1) == right1){
+						crash = 3
+					}
+					if(Math.min(top1, left1, right1, bottom1) == bottom1){
+						crash = 4
+					}
+				}
+				return crash;
+				
+			}
+			
+			
+			
+		}
+		
+		
+		
+		
+		var counter3 = 0;
+		var counter2 = 0
+		var counter1 = 0
+		var Fire = true
+		Enemy = []
+		function UpdateGame() {
+			Run.ClearTrail();
+				H1Distance += 0.5;
+				Speed += 1; 
+				Hero1.XMovement = 0;
+				Hero1.YMovement = 0;  
+				Hero1.XGravitySpeed = 0;
+				Hero1.YGravitySpeed += Hero1.YGravity;
+				counter1 += 1;
+				counter3 += 1;
+				
+				
+				
+				for(var x = 0; x < Platform.length; x++){
+					Platform[x].XCoord -= ((counter1+10000)/20000);
+					Hero1.XMovement -= 0.0005;
+				}
+				
+				if (Run.key && Run.key[86]) {
+					for(var x = 0; x < Platform.length; x++){
+						Platform[x].XCoord -= (Speed/15000);
+					}
+					H1Distance += 1;
+				}
+				
+				var xPos1 = 200 - Hero1.XCoord;
+				for(var x = 0; x < Platform.length; x++){
+					Platform[x].XCoord += (xPos1/1000);
+									
+				}				
+				
+				
+				if (SuperPower[4] == true){
+					HeroHealth = 100;
+					SuperPower[4] = false;
+				}
+				
+				if (randomInt(0, 350) == 5){
+					var x = randomInt(0, 8);
+					if (x == 1){
+						SuperPowerList.push(new Piece(randomInt(1520, 1800), randomInt(0,700), 50, 50,  'purple'));
+						SuperPowerType.push(1);
+						SuperPowerPicture.push('M');
+					}
+					else if (x == 2){
+						SuperPowerList.push(new Piece(randomInt(1520, 1800), randomInt(0,700), 50, 50,  'red'));
+						SuperPowerType.push(0);
+						SuperPowerPicture.push('S');	
+						
+					}
+					else if (x == 3){
+						SuperPowerList.push(new Piece(randomInt(1520, 1800), randomInt(0,700), 50, 50,  'blue'));
+						SuperPowerType.push(2);
+						SuperPowerPicture.push('F');
+						
+					}
+					else if (x == 4){
+						SuperPowerList.push(new Piece(randomInt(1520, 1800), randomInt(0,700), 50, 50,  'green'));
+						SuperPowerType.push(3);
+						SuperPowerPicture.push('D');
+						
+					}
+					else if (x == 5){
+						SuperPowerList.push(new Piece(randomInt(1520, 1800), randomInt(0,700), 50, 50,  'pink'));
+						SuperPowerType.push(4);
+						SuperPowerPicture.push('H');
+						
+					}
+					else if (x == 6){
+						SuperPowerList.push(new Piece(randomInt(1520, 1800), randomInt(0,700), 50, 50,  'white'));
+						SuperPowerType.push(5);
+						SuperPowerPicture.push('I');
+						
+					}
+					else if (x == 7){
+						SuperPowerList.push(new Piece(randomInt(1520, 1800), randomInt(0,700), 50, 50,  'yellow'));
+						SuperPowerType.push(6);
+						SuperPowerPicture.push('R');
+						
+					}
+				}
+				
+				if (H1Distance % 500 == 0) {
+					Enemy.push(new Piece(1520, randomInt(0,700), 30, 30, 'black'))
+					EnemyList.push(100);
+				}
+				
+				if (H1Distance % 250 == 0) {
+					if (SuperPower[6] == true){
+						if (HeroHealth < 90){
+							HeroHealth += 10;
+						}
+					}
+				}
+				
+				if (H1Distance % 2500 == 0){
+					
+					for(var g = 0; g < SuperPower.length; g++){
+						SuperPower[g] = false;
+					}
+				}
+				
+				if (Run.key && Run.key[16]){
+					
+					if (SuperPower[5] == true){
+						for(var x = 0; x < Platform.length; x++){
+							
+							if (Math.abs(Hero1.YCoord - Platform[x].YCoord) < 50 && Platform[x].XCoord - Hero1.XCoord < 50){
+								
+								Platform[x].XCoord += 1;
+								
+								if (Hero1.YCoord < Platform[x].YCoord){
+									Platform[x].YCoord += 1;
+								}
+								else{
+									Platform[x].YCoord -= 1;	
+								}
+							
+							}
+							
+						}
+					}
+					
+				}
+				/*
+				if (SuperPower[7] == true){
+					for(var x = 0; x < Enemy.length; x++){
+						
+						for(var x = 0; x < Platform.length; x++){
+						
+							if (Math.abs(Enemy[x].YCoord - Platform[x].YCoord) < 50 && Enemy[x].XCoord - Platform[x].XCoord < 50){
+								
+								Platform[x].XCoord -= 1;
+								
+								if (Enemy[x].YCoord < Platform[x].YCoord){
+									Platform[x].YCoord -= 1;
+								}
+								else{
+									Platform[x].YCoord += 1;	
+								}
+							
+							}
+						
+					}
+					}
+					
+				}
+				*/
+				if (Run.key && Run.key[65]) {
+					if (SuperPower[0] == true){
+						Hero1.XCoord -= 3.5;
+					}
+					else{
+						Hero1.XCoord -= 2.5;
+					}
+					H1Distance -= 0.5;
+				}
+				
+				if (Run.key && Run.key[68]) {
+					
+					if (SuperPower[0] == true){
+						Hero1.XCoord += 2;
+					}
+					else{
+						Hero1.XCoord += 1;
+					}
+					H1Distance += 0.5;
+				}
+				
+				if (Run.key && Run.key[87]) {
+					if (Jump == 2){
+						Hero1.YCoord -= 2.5;
+						JumpMovement = 2.5;
+						Jump = 1;
+						counter3 = 0;
+					}
+					else if (Jump == 1 && counter3 > 100){
+						JumpMovement = 2.5;
+						Hero1.YCoord -= 2;
+						Jump = 0;
+					}
+										
+				}
+				if (Jump > 0){
+					if (Hero1.YCoord < 659){
+						Hero1.YCoord += Hero1.YGravitySpeed;
+					}
+				}
+				
+				if (Hero1.YCoord > 640){
+					Jump = 2;
+					if (counter1 % 250 == 0){
+						if (HeroHealth > 0){
+							HeroHealth -= 10;
+						}
+						else{
+							Run.StopGame();
+						}
+					}
+				}
+				if (Jump < 2){
+					Hero1.Jump2();
+					Hero1.YGravitySpeed = 0;
+				}
+				
+				/*
+				if (Run.key && Run.key[87]) {
+					if (SuperPower[0] == true){
+						Hero1.YMovement -= 1.5;
+					}
+					else{
+						Hero1.YMovement -= 1;
+					}
+					
+				}
+				if (Run.key && Run.key[83]) {
+					if (SuperPower[0] == true){
+						Hero1.YMovement += 1.5;
+					}
+					else{
+						Hero1.YMovement += 1;
+					}
+					
+				}
+				*/
+				if (Run.key && Run.key[82]) {
+					window.open("Platformer (4).html","_self"); 
+					
+				}
+				
+				if (Run.key[32]){
+				
+					if (Fire == true){
+						if (BulletsFired > 0){
+							var Name = "";
+							if (SuperPower[1] == true){
+								H1Obstacles.push(new Piece(Hero1.XCoord + 40, Hero1.YCoord + 15, 5, 10, "red"));
+								H1Obstacles.push(new Piece(Hero1.XCoord + 40, Hero1.YCoord + 15, 5, 10, "red"));
+								H1Obstacles.push(new Piece(Hero1.XCoord + 40, Hero1.YCoord + 15, 5, 10, "red"));
+							}
+							else {
+							
+								H1Obstacles.push(new Piece(Hero1.XCoord + 40, Hero1.YCoord + 15, 5, 10, "red"));
+							}
+							BulletsFired--;
+							Fire = false;
+						}
+					}
+					
+					else if (Fire == false){
+						if (counter1 % 20 == 0) {
+							Fire = true
+						}
+					}
+					
+				}
+				
+				
+				for(var x = 0; x < H1Obstacles.length; x++){
+				
+					var Change = randomInt(0,4);
+					if (Change == 0){
+						H1Obstacles[x].XCoord -= (Speed/50000);
+					} else if (Change == 1){
+						H1Obstacles[x].XCoord += (Speed/50000);
+					} else if (Change == 2){
+						H1Obstacles[x].YCoord -= (Speed/50000);
+					} else if (Change == 3){
+						H1Obstacles[x].YCoord += (Speed/50000);
+					}
+				}
+				
+				for(var x = 0; x < H2Obstacles.length; x++){
+				
+					var Change = randomInt(0,4);
+					if (Change == 0){
+						H2Obstacles[x].XCoord -= (Speed/50000);
+					} else if (Change == 1){
+						H2Obstacles[x].XCoord += (Speed/50000);
+					} else if (Change == 2){
+						H2Obstacles[x].YCoord -= (Speed/50000);
+					} else if (Change == 3){
+						H2Obstacles[x].YCoord += (Speed/50000);
+					}
+				}
+				
+				for(var x = 0; x < Enemy.length; x++){
+					Enemy[x].AIPos(Enemy[x], Hero1);
+					Enemy[x].EnemyRefresh(x);
+					
+				}
+				
+				for (var i = 0; i < SuperPowerList.length; i++){
+					if (Hero1.Crash(SuperPowerList[i])){
+						SuperPower[SuperPowerType[SuperPowerList.indexOf(SuperPowerList[i])]] = true;
+						SuperPowerList.splice(i, 1);
+						SuperPowerType.splice(i, 1);
+						SuperPowerPicture.splice(i, 1);
+						if (SuperPowerType[SuperPowerList.indexOf(SuperPowerList[i])] == 1){
+							BulletsFired += 250;
+						}
+						
+					}
+					SuperPowerList[i].XCoord -= 2.5;
+					SuperPowerList[i].SuperPowerRefresh(i);
+				}
+				
+				for(var n = 0; n < H1Obstacles.length; n++){
+				
+					H1Obstacles[n].ProjectileRefresh();
+					H1Obstacles[n].UpdateH1Obstacle(n);
+					H1Obstacles[n].ObjBound(H1Obstacles, n);
+					for(var w = 0; w < Platform.length; w++){
+						if (H1Obstacles[n].Crash(Platform[w]) == true ){
+							H1Obstacles.splice(n, 1);
+							
+							if (PlatformHealth[w] < 1){
+								Platform.splice(w, 1);
+								PlatformHealth.splice(w, 1);
+							}
+							else {
+								PlatformHealth[w] -= 1;
+							}
+						}
+					}
+					for(var x = 0; x < Enemy.length; x++){
+						if (H1Obstacles[n].Crash(Enemy[x]) == true ){
+							H1Obstacles.splice(n, 1);
+							if (EnemyList[x] <= 10){
+								Enemy.splice(x, 1);
+								EnemyList.splice(x, 1);
+								EnemiesDefeated++;
+								H1Distance += 1000;
+							}
+							else if (SuperPower[3] == true){
+								EnemyList[x] -= 20;
+							}
+							else{
+								EnemyList[x] -= 10;
+							}
+						}
+					}
+					
+				}
+				
+				for(var n = 0; n < H2Obstacles.length; n++){
+				
+					H2Obstacles[n].ProjectileRefresh1();
+					H2Obstacles[n].UpdateH2Obstacle();
+					H2Obstacles[n].ObjBound(H2Obstacles, n);
+					if (Hero1.Crash(H2Obstacles[n])){
+						if (HeroHealth == 0){
+							Run.StopGame();
+						}
+						else {
+							HeroHealth -= 10;
+						}
+						H2Obstacles.splice(n, 1)
+						
+					}
+					for (var p = 0; p < Platform.length; p++){
+						if (H2Obstacles[n].Crash(Platform[p])){
+							H2Obstacles.splice(n, 1);
+						}
+					}
+				}
+				
+				
+				
+				for(var x = 0; x < Platform.length; x++){
+					
+					if(Hero1.CrashLeft(Platform[x]) == 1){
+						Hero1.YCoord = Platform[x].YCoord - 20;
+						Jump = 2;
+						JumpMovement = 2.5;
+						Hero1.YGravitySpeed = 0;
+					}
+					else if(Hero1.CrashLeft(Platform[x]) == 2){
+						Hero1.XCoord = Platform[x].XCoord - 20;
+					}
+					else if(Hero1.CrashLeft(Platform[x]) == 3){
+						Hero1.XCoord = Platform[x].XCoord + Platform[x].CharWidth;
+					}
+					else if(Hero1.CrashLeft(Platform[x]) == 4){
+						Hero1.YCoord = Platform[x].YCoord + Platform[x].CharHeight;
+						JumpMovement = 0;
+					}
+					
+					Platform[x].PlatformBound(x);
+					Platform[x].PlatformRefresh();
+				}
+				
+				
+				
+				Hero1.UpdatePos();
+				Hero1.H2Bound();
+				Hero1.CharacterRefresh();
+				
+			
+		}
+		
+		
+	
+	</script>
+</head>
+<body onLoad="SetUp()">
+</body>
+</html>

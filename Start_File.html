@@ -1,0 +1,112 @@
+<html>
+	<head>
+		<style>
+			h1 {
+				color:red;
+			}
+			button {
+				background-color: aquamarine;
+				color: black;
+				border: 2px solid #4CAF50; 
+				padding: 32px 16px;
+				text-align: center;
+				text-decoration: none;
+				display: inline-block;
+				font-size: 24px;
+				-webkit-transition-duration: 0.4s; 
+				transition-duration: 0.4s;
+			}
+			text {
+				background-color: aquamarine;
+				color: black;
+				border: 2px solid #4CAF50; 
+				padding: 32px 16px;
+				text-align: center;
+				text-decoration: none;
+				display: inline-block;
+				font-size: 24px;
+				-webkit-transition-duration: 0.4s; 
+				transition-duration: 0.4s;
+			}
+			button:hover {
+				background-color: #79CDCD; 
+				color: white;
+				box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0       rgba(0,0,0,0.19);
+			}
+			button:active {
+				background-color: #3e8e41;
+				box-shadow: 0 5px #666;
+				transform: translateY(4px);
+			}
+			body {
+				background-image: url("wallpaper8.jpg");
+			}
+			.pic {
+				background-image: linear-gradient(blueviolet, red);
+				font-size: 24px;
+				-webkit-transition-duration: 0.4s; 
+				transition-duration: 0.4s;
+			}
+			.text {
+				background-image: linear-gradient(#fffff1, grey);
+				color: black;
+				border: white;
+				border-style: solid;
+				border-width: 5px;
+				border-color: #fffff1;
+			}
+			td {
+				border-style: solid;
+				border-width: 5px;
+				border-color: #fffff1;
+			}
+			.title {
+				font-size: 100px;
+				color: black;
+			}
+			.game {
+				color: black;
+			}
+		</style>
+		<script>
+			function goToURL(val)
+			{
+			location.href = val;	
+			}
+		</script>
+	</head>
+	<body>
+		<table style="width:100%">
+			<tr>
+				<td class='pic'><center><img src="wasd keys.png" width="75" height="75"></center></td>
+				<td class='pic'><center><img src="spacebar.png" width="75" height="75"></center></td>
+				<td class='pic'><center><img src="S.png" width="75" height="75"></center></td>
+				<td class='pic'><center><img src="M.png" width="75" height="75"></center></td>
+				<td class='pic'><center><img src="F.png" width="75" height="75"></center></td>
+				<td class='pic'><center><img src="D.png" width="75" height="75"></center></td>
+				<td class='pic'><center><img src="H.png" width="75" height="75"></center></td>
+				<td class='pic'><center><img src="I.png" width="75" height="75"></center></td>
+				<td class='pic'><center><img src="R.png" width="75" height="75"></center></td>
+			</tr>
+			<tr>
+				<td class='text'><center>W: Jump <br> A: Move Left <br> D: Move Right </center></td>
+				<td class='text'><center> Space Bar: Shoot </center></td>
+				<td class='text'><center> Movement Speed: <br> Increase Ship Speed </center></td>
+				<td class='text'><center> Multishot: <br> 3x number of Shots <br> Has a chance of <br> giving more ammo</center></td>
+				<td class='text'><center> Shot Speed: <br> Increase Shot Speed </center></td>
+				<td class='text'><center> Damage: <br> 2x Damage to Aliens </center></td>
+				<td class='text'><center> Instant Health: <br> Max Health Instantly </center></td>
+				<td class='text'><center> Shield: <	br> Move Platforms <br> Away From Yourself <br> Press "Shift" once obtained</center></td>
+				<td class='text'><center> Regeneration: <br> Increases Health Over Time </center></td>
+			</tr>
+		</table>
+		<br>
+		<h1 class='title'><center>The Platformer</center></h1>
+		<br>
+		<center><button onClick="javascript:goToURL('Game_File.html')"><h1 class='game'>Play Game</h1></button></center>
+	</body>
+</html>
+
+
+
+ 
