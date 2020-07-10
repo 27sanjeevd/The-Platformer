@@ -14,4 +14,3 @@ As you progress through the game, the speed of the platforms approaching you get
 
 The category that I would like to compete in is "Best Design".
 
-Video: https://drive.google.com/file/d/1a854grh8Ul9FL286qzIZ431yzo6EG6xZ/view?usp=sharing
